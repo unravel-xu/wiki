@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 type SectionKey = "reading" | "docs" | "project" | "presentation";
 
@@ -7,7 +8,6 @@ const sections: Array<{
   title: string;
   description: string;
   href: string;
-  // 你后续可以把这里改成真实的统计/最近更新
   chips: string[];
   items: Array<{ title: string; href: string; meta?: string }>;
 }> = [
@@ -61,14 +61,6 @@ const sections: Array<{
   },
 ];
 
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-fd-muted-foreground">
-      {children}
-    </span>
-  );
-}
-
 function SectionPanel({
   title,
   description,
@@ -86,7 +78,13 @@ function SectionPanel({
 }) {
   return (
     <details
-      className="group rounded-2xl border bg-fd-background/60 p-5 text-left shadow-sm"
+      className={[
+        "relative group rounded-2xl p-5 text-left shadow-sm backdrop-blur",
+        "border border-white/15 bg-black/35 text-white",
+        "before:absolute before:inset-0 before:rounded-2xl before:p-[1px]",
+        "before:bg-gradient-to-r before:from-white/10 before:via-white/5 before:to-white/10",
+        "before:content-[''] before:pointer-events-none",
+      ].join(" ")}
       open={defaultOpen}
     >
       <summary className="list-none cursor-pointer select-none">
@@ -94,21 +92,26 @@ function SectionPanel({
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h2 className="text-base font-semibold">{title}</h2>
-              <span className="text-fd-muted-foreground transition-transform group-open:rotate-90">
+              <span className="text-white/70 transition-transform group-open:rotate-90">
                 ›
               </span>
             </div>
-            <p className="mt-1 text-sm text-fd-muted-foreground">{description}</p>
+            <p className="mt-1 text-sm text-white/80">{description}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {chips.map((c) => (
-                <Chip key={c}>{c}</Chip>
+                <span
+                  key={c}
+                  className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs text-white/75"
+                >
+                  {c}
+                </span>
               ))}
             </div>
           </div>
 
           <Link
             href={href}
-            className="shrink-0 rounded-xl border px-3 py-1.5 text-sm font-medium hover:bg-fd-muted"
+            className="shrink-0 rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/10"
           >
             View all →
           </Link>
@@ -120,16 +123,16 @@ function SectionPanel({
           <Link
             key={it.title}
             href={it.href}
-            className="rounded-xl border bg-fd-background p-4 hover:bg-fd-muted"
+            className="rounded-xl border border-white/15 bg-white/5 p-4 text-white hover:bg-white/10"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium">{it.title}</div>
                 {it.meta ? (
-                  <div className="mt-1 text-xs text-fd-muted-foreground">{it.meta}</div>
+                  <div className="mt-1 text-xs text-white/70">{it.meta}</div>
                 ) : null}
               </div>
-              <span className="text-fd-muted-foreground">↗</span>
+              <span className="text-white/60">↗</span>
             </div>
           </Link>
         ))}
@@ -140,55 +143,75 @@ function SectionPanel({
 
 export default function HomePage() {
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-12">
-      {/* Hero */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">漫游档案馆</h1>
-        <p className="mx-auto mt-3 max-w-2xl text-sm text-fd-muted-foreground sm:text-base">
-          LLM research notes · experiments · meetings · living knowledge base
-        </p>
+    <div className="home-page relative min-h-[calc(100vh-4rem)]">
+      {/* Background image - 改用 fixed 定位 */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src="/images/星云.jpg"
+          alt="Background"
+          fill
+          priority
+          className="object-cover object-center"
+        />
+        {/* overlay: dark + slight blur feel */}
+        <div className="absolute inset-0 bg-black/55" />
+        {/* optional: vignette */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
+      </div>
 
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Link
-            href="/docs"
-            className="rounded-2xl bg-fd-foreground px-4 py-2 text-sm font-medium text-fd-background hover:opacity-90"
-          >
-            Start Reading
-          </Link>
-          <a
-            href="https://monoweb-blog.vercel.app"
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-2xl border px-4 py-2 text-sm font-medium hover:bg-fd-muted"
-          >
-            Visit Blog ↗
-          </a>
+      {/* Content */}
+      <div className="mx-auto w-full max-w-5xl px-4 py-12 relative z-10">
+        {/* Hero */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            漫游档案馆
+          </h1>
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-white/80 sm:text-base">
+            LLM research notes · experiments · meetings · living knowledge base
+          </p>
+
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/docs"
+              className="rounded-2xl bg-white px-4 py-2 text-sm font-medium text-black hover:opacity-90"
+            >
+              Start Reading
+            </Link>
+            <a
+              href="https://monoweb-blog.vercel.app"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-2xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15"
+            >
+              Visit Blog ↗
+            </a>
+          </div>
         </div>
-      </div>
 
-      {/* Panels */}
-      <div className="mt-10 grid gap-4">
-        {sections.map((s) => (
-          <SectionPanel
-            key={s.key}
-            title={s.title}
-            description={s.description}
-            href={s.href}
-            chips={s.chips}
-            items={s.items}
-            defaultOpen={s.key === "docs"} // 现在只有 docs，默认展开它
-          />
-        ))}
-      </div>
+        {/* Panels */}
+        <div className="mt-10 grid gap-4">
+          {sections.map((s) => (
+            <SectionPanel
+              key={s.key}
+              title={s.title}
+              description={s.description}
+              href={s.href}
+              chips={s.chips}
+              items={s.items}
+              defaultOpen={s.key === "docs"}
+            />
+          ))}
+        </div>
 
-      {/* Now */}
-      <div className="mt-10 rounded-2xl border bg-fd-background/60 p-5">
-        <div className="text-sm font-semibold">Now</div>
-        <ul className="mt-2 space-y-1 text-sm text-fd-muted-foreground">
-          <li>• Working on: TiARA</li>
-          <li>• Reading: LoRA 改进相关论文</li>
-          <li>• This week: CVPR camera ready版本</li>
-        </ul>
+        {/* Now */}
+        <div className="mt-10 rounded-2xl border border-white/15 bg-white/10 p-5 text-white shadow-sm backdrop-blur">
+          <div className="text-sm font-semibold">Now</div>
+          <ul className="mt-2 space-y-1 text-sm text-white/80">
+            <li>• Working on: TiARA</li>
+            <li>• Reading: LoRA 改进相关论文</li>
+            <li>• This week: CVPR camera ready版本</li>
+          </ul>
+        </div>
       </div>
     </div>
   );

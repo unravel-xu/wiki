@@ -1,3 +1,14 @@
 @import 'tailwindcss';
 @import 'fumadocs-ui/css/solar.css';
 @import 'fumadocs-ui/css/preset.css';
+
+@layer base {
+  html {
+    background-color: var(--fd-background);
+    overscroll-behavior-y: none; /* 禁用滚动回弹 */
+  }
+
+  body {
+    background-color: var(--fd-background);
+  }
+}
