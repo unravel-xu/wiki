@@ -144,21 +144,19 @@ function SectionPanel({
 export default function HomePage() {
   return (
     <div className="home-page relative min-h-[calc(100vh-4rem)]">
-      {/* Background image - 改用 fixed 定位 */}
-      <div className="fixed inset-0 -z-10">
+      <div className="fixed inset-0 h-[100dvh] -z-10">
         <Image
           src="/images/星云.jpg"
           alt="Background"
           fill
           priority
           className="object-cover object-center"
+          sizes="100vw"
         />
-        {/* overlay: dark + slight blur feel */}
         <div className="absolute inset-0 bg-black/55" />
-        {/* optional: vignette */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
       </div>
-
+      
       {/* Content */}
       <div className="mx-auto w-full max-w-5xl px-4 py-12 relative z-10">
         {/* Hero */}
