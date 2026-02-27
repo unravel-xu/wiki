@@ -2,13 +2,17 @@
 @import 'fumadocs-ui/css/solar.css';
 @import 'fumadocs-ui/css/preset.css';
 
+/* globals.css */
 @layer base {
   html {
     background-color: var(--fd-background);
-    overscroll-behavior-y: none; /* 禁用滚动回弹 */
+    overscroll-behavior-y: auto;
+    height: 100%;
   }
 
   body {
     background-color: var(--fd-background);
+    height: 100%;
+    position: relative;
   }
 }

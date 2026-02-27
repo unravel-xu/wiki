@@ -142,9 +142,11 @@ function SectionPanel({
 }
 
 export default function HomePage() {
+  
   return (
     <div className="home-page relative min-h-[calc(100vh-4rem)]">
-      <div className="fixed inset-0 h-[100dvh] -z-10">
+      {/* 使用 100% ，继承 html/body 高度 */}
+      <div className="fixed inset-0 h-full w-full -z-10">
         <Image
           src="/images/星云.jpg"
           alt="Background"
