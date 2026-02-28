@@ -11,6 +11,9 @@
 /build
 *.tsbuildinfo
 
+# content
+/content/
+
 # misc
 .DS_Store
 *.pem
