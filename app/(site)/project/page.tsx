@@ -1,16 +1,10 @@
-// app/project/page.tsx
+// app/(site)/project/page.tsx
 import Link from "next/link";
 import path from "path";
 import fs from "fs/promises";
 import fg from "fast-glob";
 import matter from "gray-matter";
 
-import {
-  DocsPage,
-  DocsBody,
-  DocsTitle,
-  DocsDescription,
-} from "fumadocs-ui/layouts/notebook/page";
 import { Card } from "fumadocs-ui/components/card";
 import { Tag } from "lucide-react";
 
@@ -20,7 +14,7 @@ type ProjectEntry = {
   venue: Venue;
   year: number;
   title: string;
-  slug: string; // /project/{slug}
+  slug: string;
   oneLine: string;
   status?: "accepted" | "submitted" | "draft";
   track?: string;
@@ -38,7 +32,6 @@ function isVenue(v: string): v is Venue {
   return (venueOrder as string[]).includes(v);
 }
 
-/** frontmatter venue 规范化：支持 cvpr/Cvpr/CVPR 等写法 */
 function normalizeVenue(v: unknown): Venue | null {
   if (typeof v !== "string") return null;
   const upper = v.trim().toUpperCase();
@@ -53,8 +46,15 @@ function coerceStatus(s: unknown): ProjectEntry["status"] | undefined {
 function coerceLinks(x: unknown): ProjectEntry["links"] | undefined {
   if (!x || typeof x !== "object") return undefined;
   const o = x as Record<string, unknown>;
-  const pick = (k: string) => (typeof o[k] === "string" ? (o[k] as string) : undefined);
-  const links = { paper: pick("paper"), code: pick("code"), slides: pick("slides") };
+  const pick = (k: string) =>
+    typeof o[k] === "string" ? (o[k] as string) : undefined;
+
+  const links = {
+    paper: pick("paper"),
+    code: pick("code"),
+    slides: pick("slides"),
+  };
+
   if (!links.paper && !links.code && !links.slides) return undefined;
   return links;
 }
@@ -62,7 +62,10 @@ function coerceLinks(x: unknown): ProjectEntry["links"] | undefined {
 function coerceKeywords(x: unknown): string[] | undefined {
   if (Array.isArray(x)) return x.filter((t) => typeof t === "string") as string[];
   if (typeof x === "string") {
-    const arr = x.split(",").map((s) => s.trim()).filter(Boolean);
+    const arr = x
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
     return arr.length ? arr : undefined;
   }
   return undefined;
@@ -77,16 +80,10 @@ function coerceYear(x: unknown): number | null {
   return null;
 }
 
-/**
- * 扫描并读取 content/project 下的 mdx（扁平结构），生成 entries
- * 期望结构：content/project/{slug}.mdx
- * 期望 frontmatter：venue/year/title/oneLine/...
- */
 async function getProjectEntries(): Promise<ProjectEntry[]> {
   const root = process.cwd();
   const contentRoot = path.join(root, "content", "project");
 
-  // ✅ 扁平结构：content/project/*.mdx
   const files = await fg(["*.mdx"], {
     cwd: contentRoot,
     onlyFiles: true,
@@ -100,16 +97,15 @@ async function getProjectEntries(): Promise<ProjectEntry[]> {
 
       const slug = rel.replace(/\.mdx$/, "");
 
-      // ✅ venue 来自 frontmatter
       const venue = normalizeVenue((data as any).venue);
-      if (!venue) return null; // 没写 venue 或写错则跳过
+      if (!venue) return null;
 
       const year = coerceYear((data as any).year);
       if (!year) return null;
 
-      const title = typeof (data as any).title === "string" ? (data as any).title : slug;
+      const title =
+        typeof (data as any).title === "string" ? (data as any).title : slug;
 
-      // oneLine：优先 oneLine，其次 description
       const oneLine =
         typeof (data as any).oneLine === "string"
           ? (data as any).oneLine
@@ -124,7 +120,10 @@ async function getProjectEntries(): Promise<ProjectEntry[]> {
         slug,
         oneLine,
         status: coerceStatus((data as any).status),
-        track: typeof (data as any).track === "string" ? (data as any).track : undefined,
+        track:
+          typeof (data as any).track === "string"
+            ? (data as any).track
+            : undefined,
         keywords: coerceKeywords((data as any).keywords),
         links: coerceLinks((data as any).links),
       };
@@ -172,6 +171,7 @@ function StatusPill({
 
 function KeywordRow({ keywords }: { keywords?: string[] }) {
   if (!keywords?.length) return null;
+
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {keywords.slice(0, 6).map((k) => (
@@ -188,7 +188,6 @@ function KeywordRow({ keywords }: { keywords?: string[] }) {
 }
 
 function ProjectIndexCard({ e }: { e: ProjectEntry }) {
-  // ✅ 扁平路由：不再包含 venue
   const href = `/project/${e.slug}`;
 
   return (
@@ -202,7 +201,9 @@ function ProjectIndexCard({ e }: { e: ProjectEntry }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-baseline gap-2">
-              <span className="text-base font-semibold text-fd-foreground">{e.title}</span>
+              <span className="text-base font-semibold text-fd-foreground">
+                {e.title}
+              </span>
               <span className="text-xs text-fd-muted-foreground">
                 · {e.venue} {e.year}
               </span>
@@ -210,7 +211,7 @@ function ProjectIndexCard({ e }: { e: ProjectEntry }) {
 
             <div className="mt-3 flex items-center justify-between gap-3">
               <StatusPill status={e.status} track={e.track} />
-              <span className="text-xs text-fd-muted-foreground group-hover:text-fd-foreground transition-colors">
+              <span className="text-xs text-fd-muted-foreground transition-colors group-hover:text-fd-foreground">
                 Open →
               </span>
             </div>
@@ -242,7 +243,12 @@ export default async function ProjectIndexPage() {
       byYear.get(e.year)!.push(e);
     }
 
-    const statusRank: Record<string, number> = { accepted: 0, submitted: 1, draft: 2 };
+    const statusRank: Record<string, number> = {
+      accepted: 0,
+      submitted: 1,
+      draft: 2,
+    };
+
     for (const [, byYear] of map) {
       for (const [y, list] of byYear) {
         list.sort((a, b) => {
@@ -259,7 +265,7 @@ export default async function ProjectIndexPage() {
   })();
 
   return (
-    <DocsPage breadcrumb={{ enabled: false }}>
+    <main className="mx-auto w-full max-w-6xl">
       <div className="mb-2 text-sm text-fd-muted-foreground">
         <Link href="/" className="hover:text-fd-foreground">
           Home
@@ -268,20 +274,24 @@ export default async function ProjectIndexPage() {
         <span className="text-fd-foreground">Project</span>
       </div>
 
-      <DocsTitle>Project</DocsTitle>
-      <DocsDescription>
-        按会议与年份归档研究输出。每条包含一句话 TL;DR、关键词与常用链接（paper/code/slides）。
-      </DocsDescription>
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-fd-foreground">
+          Project
+        </h1>
+        <p className="mt-2 max-w-3xl text-sm text-fd-muted-foreground">
+          按会议与年份归档研究输出。每条包含一句话 TL;DR、关键词与常用链接（paper/code/slides）。
+        </p>
+      </header>
 
-      <DocsBody>
+      <section className="space-y-10">
         {venueOrder.map((venue) => {
           const byYear = grouped.get(venue);
           const years = byYear ? Array.from(byYear.keys()).sort((a, b) => b - a) : [];
           if (!years.length) return null;
 
           return (
-            <section key={venue} className="not-prose">
-              <h2 className="mt-10 scroll-mt-24 text-2xl font-semibold text-fd-foreground">
+            <section key={venue}>
+              <h2 className="text-2xl font-semibold text-fd-foreground">
                 {venue}
               </h2>
 
@@ -291,7 +301,7 @@ export default async function ProjectIndexPage() {
 
                 return (
                   <div key={year} className="mt-6">
-                    <h3 className="scroll-mt-24 text-lg font-semibold text-fd-foreground">
+                    <h3 className="text-lg font-semibold text-fd-foreground">
                       {year}
                     </h3>
 
@@ -306,16 +316,16 @@ export default async function ProjectIndexPage() {
             </section>
           );
         })}
+      </section>
 
-        <div className="mt-12 not-prose rounded-2xl border border-fd-border bg-fd-background/60 p-5">
-          <div className="text-sm">
-            <div className="font-medium text-fd-foreground">Next step</div>
-            <div className="mt-1 text-fd-muted-foreground">
-              索引页已从 content/project/*.mdx 的 frontmatter（venue/year/...）自动生成。
-            </div>
+      <div className="mt-12 rounded-2xl border border-fd-border bg-fd-background/60 p-5">
+        <div className="text-sm">
+          <div className="font-medium text-fd-foreground">Next step</div>
+          <div className="mt-1 text-fd-muted-foreground">
+            索引页已从 content/project/*.mdx 的 frontmatter（venue/year/...）自动生成。
           </div>
         </div>
-      </DocsBody>
-    </DocsPage>
+      </div>
+    </main>
   );
 }

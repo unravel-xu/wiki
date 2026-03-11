@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   BookIcon,
@@ -10,10 +10,13 @@ import {
   Presentation,
   ExternalLink,
   Search,
+  Sun,
+  Moon,
 } from "lucide-react";
-import { SiGithub } from 'react-icons/si'; 
+import { SiGithub } from "react-icons/si";
 import { useSearchContext } from "fumadocs-ui/contexts/search";
 import { baseOptions } from "@/lib/layout.shared";
+import { useTheme } from "next-themes";
 
 function PillLink({
   href,
@@ -42,22 +45,64 @@ function PillLink({
   );
 }
 
-export default function HomeNavbar() {
+function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // useEffect 只会在客户端执行，执行完后将 mounted 设为 true
+  useEffect(() => {
+    setMounted(true);
+  },[]);
+
+  // 为了避免服务端和客户端水合不匹配（SSR Hydration Mismatch）
+  // 在客户端挂载完成前，渲染一个占位按钮（高度宽度保持一致，避免布局抖动）
+  if (!mounted) {
+    return (
+      <button
+        type="button"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-fd-border bg-fd-background/40 text-fd-muted-foreground transition-colors"
+        aria-label="Toggle theme"
+        title="Toggle theme"
+        disabled // 挂载前禁用点击
+      >
+        <span className="h-4 w-4" />
+      </button>
+    );
+  }
+
+  const isDark = resolvedTheme === "dark";
+
+  return (
+    <button
+      type="button"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-fd-border bg-fd-background/40 text-fd-muted-foreground hover:text-fd-foreground hover:bg-fd-accent/30 transition-colors"
+      aria-label="Toggle theme"
+      title="Toggle theme"
+    >
+      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
+
+export default function SiteNavbar({
+  showThemeToggle = true,
+}: {
+  showThemeToggle?: boolean;
+}) {
   const pathname = usePathname();
   const { setOpenSearch } = useSearchContext();
 
-  const opts = useMemo(() => baseOptions(), []);
+  const opts = useMemo(() => baseOptions(),[]);
   const githubUrl = opts.githubUrl;
 
   return (
     <header className="sticky top-0 z-50 h-14 border-b border-fd-border bg-fd-background/95 backdrop-blur supports-[backdrop-filter]:bg-fd-background/80">
-        <div className="mx-auto flex h-full max-w-6xl items-center gap-3 px-4">
-        {/* Brand */}
+      <div className="mx-auto flex h-full max-w-6xl items-center gap-3 px-4">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-sm font-semibold text-fd-foreground">MonoWeb</span>
         </Link>
 
-        {/* Nav pills */}
         <nav className="ml-2 hidden md:flex items-center gap-1 rounded-full border border-fd-border bg-fd-background/40 p-1">
           <PillLink
             href="/reading"
@@ -66,6 +111,7 @@ export default function HomeNavbar() {
           >
             Reading
           </PillLink>
+
           <PillLink
             href="/docs"
             icon={<LibraryBig className="h-4 w-4" />}
@@ -73,6 +119,7 @@ export default function HomeNavbar() {
           >
             Documentation
           </PillLink>
+
           <PillLink
             href="/project"
             icon={<FlaskConical className="h-4 w-4" />}
@@ -80,6 +127,7 @@ export default function HomeNavbar() {
           >
             Project
           </PillLink>
+
           <PillLink
             href="/presentation"
             icon={<Presentation className="h-4 w-4" />}
@@ -89,7 +137,6 @@ export default function HomeNavbar() {
           </PillLink>
         </nav>
 
-        {/* Search trigger */}
         <button
           type="button"
           onClick={() => setOpenSearch(true)}
@@ -109,7 +156,6 @@ export default function HomeNavbar() {
           </span>
         </button>
 
-        {/* Right icons */}
         <div className="flex items-center gap-2">
           <a
             href={githubUrl}
@@ -132,6 +178,8 @@ export default function HomeNavbar() {
           >
             <ExternalLink className="h-4 w-4" />
           </a>
+
+          {showThemeToggle ? <ThemeToggle /> : null}
         </div>
       </div>
     </header>
