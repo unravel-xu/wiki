@@ -5,7 +5,7 @@ import {
   getFlexJustify,
   isImageOnlyMarkdown,
   parseLayoutBlock,
-} from './reveal-slide-utils';
+} from './reveal-slide-shared';
 
 function HtmlBlock({
   html,
@@ -14,7 +14,13 @@ function HtmlBlock({
   html: string;
   className?: string;
 }) {
-  return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <div
+      suppressHydrationWarning
+      className={className}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
 }
 
 const baseContentClass = [
@@ -43,7 +49,9 @@ export function CoverSlide({
   return (
     <div
       className={`rd-slide-root w-full bg-[var(--rd-slide-bg)] px-14 py-12 text-center text-[var(--rd-text)] ${
-        printMode ? 'min-h-[210mm] h-auto flex items-center justify-center' : 'h-full flex items-center justify-center'
+        printMode
+          ? 'min-h-[210mm] h-auto flex items-center justify-center'
+          : 'h-full flex items-center justify-center'
       }`}
     >
       <HtmlBlock
@@ -125,7 +133,9 @@ export function StandardSlide({
                 } ${
                   imageOnly
                     ? 'justify-center items-center'
-                    : `${getFlexJustify(cell.attrs.align)} ${getFlexItems(cell.attrs.justify)}`
+                    : `${getFlexJustify(cell.attrs.align)} ${getFlexItems(
+                        cell.attrs.justify
+                      )}`
                 }`}
                 style={{ padding: cell.attrs.padding ?? '24px' }}
               >
